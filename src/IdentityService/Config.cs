@@ -17,7 +17,7 @@ public static class Config
             new ApiScope("auctionApp", "Auction app full access"),
         };
 
-    public static IEnumerable<Client> Clients =>
+    public static IEnumerable<Client> Clients(IConfiguration config) =>
         new Client[]
         {
             // postman
@@ -36,10 +36,10 @@ public static class Config
                 ClientId = "nextApp",
                 ClientName = "nextApp",
                 AllowedScopes = { "openid", "profile", "auctionApp" },
-                RedirectUris = {"http://localhost:3000/api/auth/callback/id-server"},
                 ClientSecrets = [new Secret("secret".Sha256())],
                 AllowedGrantTypes = GrantTypes.CodeAndClientCredentials,
                 RequirePkce = false,
+                RedirectUris = {config["ClientApp"] + "/api/auth/callback/id-server"},
                 AllowOfflineAccess = true,
                 AccessTokenLifetime = 3600*24*30,
                 AlwaysIncludeUserClaimsInIdToken = true

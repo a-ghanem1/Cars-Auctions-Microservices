@@ -6,7 +6,7 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - /var/lib/postgresql/data
   mongodb:
     image: mongo
     environment:
@@ -15,7 +15,7 @@ services:
     ports:
       - 27017:27017
     volumes:
-      - mongodata:/data/db
+      - /data/db
   rabbitmq:
     image: rabbitmq:3-management-alpine
     ports:
@@ -68,6 +68,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Docker
       - ASPNETCORE_URLS=http://+:80
       - ConnectionStrings__DefaultConnection=Server=postgres:5432;User Id=postgres;Password=postgrespw;Database=identity
+      - VIRTUAL_HOST=id.carsties.local
     ports:
       - 5001:80
     depends_on:
@@ -80,8 +81,8 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
       - ASPNETCORE_URLS=http://+:80
-    ports:
-      - 6001:80
+      - ClientApp=https://app.carsties.local
+      - VIRTUAL_HOST=api.carsties.local
   bid-service:
     image: ghanem22/bid-service:latest
     build: 
@@ -112,6 +113,31 @@ services:
       - 7004:80
     depends_on:
       - rabbitmq
-volumes:
-  pgdata:
-  mongodata:
+  web-app:
+    image: ghanem22/web-app
+    build: 
+      context: .
+      dockerfile: frontend/web-app/Dockerfile
+    volumes:
+      - /var/lib/web/data
+    environment:
+      - AUTH_SECRET="7vgUxWjehgeKTOFH2dZu0zSeKP61o9gl0b1vuHCqeMo="
+      - AUTH_URL=https://app.carsties.local
+      - AUTH_URL_INTERNAL=http://web-app:3000
+      - API_URL=http://gateway-service/
+      - ID_URL=https://id.carsties.local
+      - ID_URL_INTERNAL=http://identity-service
+      - NOTIFY_URL=https://api.carsties.local/notifications
+      - VIRTUAL_HOST=app.carsties.local
+      - VIRTUAL_PORT=3000
+    ports:
+      - 3000:3000
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy
+    container_name: nginx-proxy
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./devcerts:/etc/nginx/certs
