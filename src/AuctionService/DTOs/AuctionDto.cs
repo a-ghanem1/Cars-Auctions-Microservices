@@ -4,6 +4,7 @@ public class AuctionDto
 {
     public Guid Id { get; set; }
     public int ReservePrice { get; set; }
+    public int CurrentHighBid { get; set; }
     public string Seller { get; set; }
     public string Winner { get; set; }
     public DateTime CreatedAt { get; set; }
